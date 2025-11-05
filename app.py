@@ -9,6 +9,7 @@ import gzip
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+
 st.set_page_config(layout="wide", page_title="Correlação Fundos")
 
 st.title("📊 Análise de Correlação entre Fundos de Investimento")
@@ -24,21 +25,18 @@ def clean_cnpj(cnpj_raw):
         return ""
     return re.sub(r"\D", "", cnpj_raw)
 
+@st.cache_data  # cacheia o resultado para não buscar toda hora
 def obter_nome_fundo(cnpj):
-    """Tenta extrair o nome do fundo da página; retorna None em caso de erro."""
-    cnpj = clean_cnpj(cnpj)
-    if not cnpj:
-        return None
-    url = f"https://www.okanebox.com.br/w/fundo-investimento/{cnpj}"
     try:
-        r = requests.get(url, headers=HEADERS, timeout=10)
-        if r.status_code != 200:
-            return None
-        soup = BeautifulSoup(r.content, "html.parser")
-        h1 = soup.find("h1")
-        return h1.get_text(strip=True) if h1 else None
+        url = f"https://www.okanebox.com.br/fundo/{cnpj}"
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, "html.parser")
+        nome = soup.find("h1").get_text(strip=True)
+        return nome
     except Exception as e:
-        return None
+        print(f"Erro ao buscar nome do fundo {cnpj}: {e}")
+        return f"Fundo {cnpj[-4:]}"
+
 
 def fetch_json_url(url):
     """Busca a URL e tenta decodificar JSON, suportando gzip."""
@@ -182,18 +180,20 @@ st.markdown("Insira até 10 CNPJs, separados por vírgula ou nova linha:")
 cnpjs_input = st.text_area("CNPJs", height=120, placeholder="Ex: 13823084000105, 09636393000107, 18860059/0001-15")
 
 if st.button("Calcular Correlação"):
+        # --- Limpar e validar os CNPJs digitados ---
     cnpjs = [c.strip() for c in re.split('[,\n;]+', cnpjs_input) if c.strip()]
     if not cnpjs:
         st.error("Por favor, insira pelo menos 1 CNPJ válido.")
     else:
-        with st.spinner("Coletando dados..."):
-            fundos_retornos, erros = coletar_dados_fundos(cnpjs)
+        # --- Mostrar nomes reais dos fundos antes de coletar os dados ---
+        st.write("🔍 Buscando nomes dos fundos...")
+        nomes_fundos = []
+        for c in cnpjs:
+            nome = obter_nome_fundo(c)
+            nomes_fundos.append(nome)
+            st.write(f"- **{nome}**")
+        st.divider()
 
-        # mostrar erros (se houver)
-        if erros:
-            st.error("Alguns CNPJs falharam:")
-            for cnpj, msg in erros:
-                st.write(f"- {cnpj}: {msg}")
 
         # mostrar resumo dos fundos capturados
         st.write("### Fundos válidos coletados:")
