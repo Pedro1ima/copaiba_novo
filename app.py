@@ -179,20 +179,24 @@ def calcular_e_plotar_correlacao(fundos_retornos):
 st.markdown("Insira até 10 CNPJs, separados por vírgula ou nova linha:")
 cnpjs_input = st.text_area("CNPJs", height=120, placeholder="Ex: 13823084000105, 09636393000107, 18860059/0001-15")
 
-   cnpjs = [c.strip() for c in re.split('[,\n;]+', cnpjs_input) if c.strip()]
+if st.button("Calcular Correlação"):
+    cnpjs = [c.strip() for c in re.split('[,\n;]+', cnpjs_input) if c.strip()]
     if not cnpjs:
         st.error("Por favor, insira pelo menos 1 CNPJ válido.")
     else:
-        # --- Mostrar nomes reais dos fundos antes de coletar os dados ---
-        st.write("🔍 Buscando nomes dos fundos...")
-        nomes_fundos = []
-        for c in cnpjs:
-            nome = obter_nome_fundo(c)
-            nomes_fundos.append(nome)
-            st.write(f"- **{nome}**")
-        st.divider()
+        with st.spinner("Coletando dados..."):
+            fundos_retornos, erros = coletar_dados_fundos(cnpjs)
 
-        
+        if erros:
+            st.error("Alguns CNPJs falharam:")
+            for cnpj, msg in erros:
+                st.write(f"- {cnpj}: {msg}")
+
+        # mostrar resumo dos fundos capturados
+        st.write("### Fundos válidos coletados:")
+        for nome, s in fundos_retornos.items():
+            st.write(f"- {nome}: {len(s)} observações (de {s.index.min().date()} até {s.index.max().date()})")
+
         # plotar correlação se possível
         calcular_e_plotar_correlacao(fundos_retornos)
 
