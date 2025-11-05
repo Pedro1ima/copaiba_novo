@@ -139,7 +139,7 @@ def calcular_e_plotar_correlacao(fundos_retornos):
     anot = matriz.round(2).astype(str)
     anot = anot.where(~mask, "")        # células mascaradas ficam vazias
 
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(5, 4))
     ax = sns.heatmap(
         matriz,
         mask=mask,
@@ -151,7 +151,7 @@ def calcular_e_plotar_correlacao(fundos_retornos):
         square=True,
         linewidths=0.5,
         cbar_kws={"shrink": 0.75},
-        annot_kws={"fontsize": 10, "weight": "bold", "color": "black"}
+        annot_kws={"fontsize": 10, "weight": "bold", "color": "white"}
     )
 
     # Ajustes de ticks para evitar cortar labels
