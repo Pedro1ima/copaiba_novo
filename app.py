@@ -149,7 +149,7 @@ def calcular_e_plotar_correlacao(fundos_retornos):
     plt.text(
         0.5, 0.5, "Copaíba Invest",
         fontsize=48,
-        color="white",
+        color="black",
         alpha=0.25,
         weight="bold",
         ha='center',
@@ -161,13 +161,6 @@ def calcular_e_plotar_correlacao(fundos_retornos):
     plt.tight_layout()
     st.pyplot(plt)
 
-
-    
-    matriz = df.corr()
-    plt.figure(figsize=(10,8))
-    mask = np.triu(np.ones_like(matriz, dtype=bool), k=1)
-    sns.heatmap(matriz, annot=True, fmt=".2f", cmap="Greens", vmin=-1, vmax=1, mask=None)
-    st.pyplot(plt)
 
 # ---------- UI ----------
 st.markdown("Insira até 10 CNPJs, separados por vírgula ou nova linha:")
