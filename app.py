@@ -123,10 +123,24 @@ def calcular_e_plotar_correlacao(fundos_retornos):
     df = pd.concat(fundos_retornos, axis=1, join='inner')
     if df.shape[1] < 2:
         st.warning("Após alinhamento de datas restaram menos de 2 séries válidas para correlacionar.")
-        st.write("Séries disponíveis e comprimentos:")
-        for k, s in fundos_retornos.items():
-            st.write(f"- {k}: {len(s)} observações")
         return
+
+    matriz = df.corr()
+
+    # --- Plotar heatmap ---
+    plt.figure(figsize=(10,8))
+    mask = np.triu(np.ones_like(matriz, dtype=bool), k=1)
+    sns.heatmap(matriz, annot=True, fmt=".2f", cmap="Greens", vmin=-1, vmax=1, mask=None)
+
+    # --- Adicionar marca d'água ---
+    plt.text(
+        0.5, 0.5, "Copaíba Invest",
+        fontsize=48, color="white", alpha=0.25, weight="bold",
+        ha='center', va='center', rotation=30, transform=plt.gca().transAxes
+    )
+
+    plt.tight_layout()
+    st.pyplot(plt)
 
     matriz = df.corr()
     plt.figure(figsize=(10,8))
