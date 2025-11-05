@@ -116,6 +116,11 @@ def coletar_dados_fundos(cnpjs):
     return fundos_retornos, erros
 
 def calcular_e_plotar_correlacao(fundos_retornos):
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    import numpy as np
+    import streamlit as st
+
     if len(fundos_retornos) < 2:
         st.warning("É necessário pelo menos 2 fundos válidos para calcular correlação.")
         return
@@ -127,37 +132,47 @@ def calcular_e_plotar_correlacao(fundos_retornos):
 
     matriz = df.corr()
 
-    # --- Criar máscara para exibir apenas o triângulo inferior ---
-    mask = np.triu(np.ones_like(matriz, dtype=bool))
+    # --- Máscara: ocultar somente o triângulo superior (k=1 preserva a diagonal) ---
+    mask = np.triu(np.ones_like(matriz, dtype=bool), k=1)
 
-    # --- Plotar heatmap triangular ---
-    plt.figure(figsize=(10,8))
-    sns.heatmap(
+    # --- Criar uma versão anotada onde apenas as células visíveis serão mostradas ---
+    anot = matriz.round(2).astype(str)
+    anot = anot.where(~mask, "")        # células mascaradas ficam vazias
+
+    plt.figure(figsize=(8, 6))
+    ax = sns.heatmap(
         matriz,
-        annot=True,
-        fmt=".2f",
+        mask=mask,
+        annot=anot,
+        fmt='',
         cmap="Greens",
         vmin=-1,
         vmax=1,
-        mask=mask,
         square=True,
         linewidths=0.5,
-        cbar_kws={"shrink": 0.8}
+        cbar_kws={"shrink": 0.75},
+        annot_kws={"fontsize": 10, "weight": "bold", "color": "black"}
     )
 
-    # --- Adicionar marca d'água ---
+    # Ajustes de ticks para evitar cortar labels
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right")
+    ax.set_yticklabels(ax.get_yticklabels(), rotation=0)
+
+    # --- Marca d'água (centralizada, sem atrapalhar leitura) ---
     plt.text(
         0.5, 0.5, "Copaíba Invest",
         fontsize=48,
-        color="black",
-        alpha=0.25,
+        color="grey",
+        alpha=0.18,
         weight="bold",
         ha='center',
         va='center',
         rotation=30,
-        transform=plt.gca().transAxes
+        transform=ax.transAxes,
+        zorder=1  # atrás das células (os patches do heatmap têm zorder maior)
     )
 
+    plt.title("Matriz de Correlação (triângulo inferior com diagonal)")
     plt.tight_layout()
     st.pyplot(plt)
 
