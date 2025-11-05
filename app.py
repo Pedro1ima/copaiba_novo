@@ -127,21 +127,42 @@ def calcular_e_plotar_correlacao(fundos_retornos):
 
     matriz = df.corr()
 
-    # --- Plotar heatmap ---
+    # --- Criar máscara para exibir apenas o triângulo inferior ---
+    mask = np.triu(np.ones_like(matriz, dtype=bool))
+
+    # --- Plotar heatmap triangular ---
     plt.figure(figsize=(10,8))
-    mask = np.triu(np.ones_like(matriz, dtype=bool), k=1)
-    sns.heatmap(matriz, annot=True, fmt=".2f", cmap="Greens", vmin=-1, vmax=1, mask=None)
+    sns.heatmap(
+        matriz,
+        annot=True,
+        fmt=".2f",
+        cmap="Greens",
+        vmin=-1,
+        vmax=1,
+        mask=mask,
+        square=True,
+        linewidths=0.5,
+        cbar_kws={"shrink": 0.8}
+    )
 
     # --- Adicionar marca d'água ---
     plt.text(
         0.5, 0.5, "Copaíba Invest",
-        fontsize=48, color="white", alpha=0.25, weight="bold",
-        ha='center', va='center', rotation=30, transform=plt.gca().transAxes
+        fontsize=48,
+        color="white",
+        alpha=0.25,
+        weight="bold",
+        ha='center',
+        va='center',
+        rotation=30,
+        transform=plt.gca().transAxes
     )
 
     plt.tight_layout()
     st.pyplot(plt)
 
+
+    
     matriz = df.corr()
     plt.figure(figsize=(10,8))
     mask = np.triu(np.ones_like(matriz, dtype=bool), k=1)
